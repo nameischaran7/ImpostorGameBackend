@@ -1,0 +1,9 @@
+com\example\ImpostorGame\handler\GameWebSocketHandler.class
+com\example\ImpostorGame\phase\GamePhase.class
+com\example\ImpostorGame\config\WebSocketConfig.class
+com\example\ImpostorGame\model\ClientMessage.class
+com\example\ImpostorGame\model\GameRoom.class
+com\example\ImpostorGame\model\WordPair.class
+com\example\ImpostorGame\ImpostorGameApplication.class
+com\example\ImpostorGame\model\Player.class
+com\example\ImpostorGame\service\GameService.class
