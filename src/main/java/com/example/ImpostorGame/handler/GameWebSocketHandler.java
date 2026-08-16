@@ -7,7 +7,10 @@ import com.example.ImpostorGame.model.WordPair;
 import com.example.ImpostorGame.service.GameService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.socket.*;
+import org.apache.commons.lang3.StringUtils;
 
+
+// Output: "example.com"
 import java.io.IOException;
 
 public class GameWebSocketHandler implements WebSocketHandler {
@@ -113,51 +116,82 @@ public class GameWebSocketHandler implements WebSocketHandler {
         // =====================================================
 
         // CREATE ROOM
-        if (messageText.equals("CREATE_ROOM")) {
+        if (messageText.startsWith("CREATE_ROOM")) {
 
-            GameRoom room =
-                    gameService.createRoom();
 
-            gameService.joinRoom(
-                    room.getRoomId(),
-                    session.getId()
-            );
 
-            Player player =
-                    gameService.getPlayer(
-                            session.getId()
+                String name =
+                        StringUtils.substringAfter(
+                                messageText,
+                                "CREATE_ROOM:"
+                        );
+
+                if (name.isBlank()) {
+                    session.sendMessage(
+                            new TextMessage("NAME_REQUIRED")
                     );
-            session.sendMessage(
-                    new TextMessage(
-                            "YOUR_ID:" +
-                                    player.getPublicId()
-                    )
-            );
+                    return;
+                }
 
-            session.sendMessage(
-                    new TextMessage(
-                            "ROOM_CREATED:" +
-                                    room.getRoomId()
-                    )
-            );
+                GameRoom room =
+                        gameService.createRoom();
 
-            session.sendMessage(
-                    new TextMessage(
-                            "PLAYERS:" +
-                                    gameService.getPlayerList(
-                                            room.getRoomId()
-                                    )
-                    )
-            );
-        }
+                Player player =
+                        gameService.getPlayer(
+                                session.getId()
+                        );
 
+                player.setName(name);
+
+                gameService.joinRoom(
+                        room.getRoomId(),
+                        session.getId()
+                );
+
+                session.sendMessage(
+                        new TextMessage(
+                                "YOUR_ID:" +
+                                        player.getPublicId()
+                        )
+                );
+
+                session.sendMessage(
+                        new TextMessage(
+                                "ROOM_CREATED:" +
+                                        room.getRoomId()
+                        )
+                );
+
+                session.sendMessage(
+                        new TextMessage(
+                                "PLAYERS:" +
+                                        gameService.getPlayerList(
+                                                room.getRoomId()
+                                        )
+                        )
+                );
+            }
 
         // JOIN ROOM
         if (messageText.startsWith(
                 "JOIN_ROOM:")) {
+            String data = messageText.substring(10);
 
-            String roomId =
-                    messageText.substring(10);
+            String[] parts = data.split(":", 2);
+            if (parts.length != 2) {
+                session.sendMessage(
+                        new TextMessage("NAME_REQUIRED")
+                );
+                return;
+            }
+            String roomId = parts[0];
+            String name = parts[1];
+
+
+            Player player =
+                    gameService.getPlayer(session.getId());
+
+            player.setName(name);
 
             boolean joined =
                     gameService.joinRoom(
@@ -167,17 +201,26 @@ public class GameWebSocketHandler implements WebSocketHandler {
 
             if (joined) {
 
+                session.sendMessage(
+                        new TextMessage(
+                                "ROOM_CREATED:" + roomId
+                        )
+                );
+
+                session.sendMessage(
+                        new TextMessage(
+                                "YOUR_ID:" +
+                                        player.getPublicId()
+                        )
+                );
+
                 String playerList =
-                        gameService.getPlayerList(
-                                roomId
-                        );
+                        gameService.getPlayerList(roomId);
 
                 gameService.broadcastToRoom(
                         roomId,
-                        "PLAYERS:" +
-                                playerList
+                        "PLAYERS:" + playerList
                 );
-
             } else {
 
                 session.sendMessage(
