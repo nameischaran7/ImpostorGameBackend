@@ -336,7 +336,7 @@ public class GameService {
             broadcastToRoom(
                     roomId,
                     "YOUR_TURN:" +
-                            firstDescriber.getName()
+                            firstDescriber.getPublicId()
             );
         }
 
@@ -575,8 +575,8 @@ public class GameService {
 
         broadcastToRoom(
                 roomId,
-                "Your Turn : " +
-                        nextPlayer.getName()
+                "YOUR_TURN:" +
+                        nextPlayer.getPublicId()
         );
     }
 

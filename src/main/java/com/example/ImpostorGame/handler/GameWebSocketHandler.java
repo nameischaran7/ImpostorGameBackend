@@ -118,10 +118,35 @@ public class GameWebSocketHandler implements WebSocketHandler {
             GameRoom room =
                     gameService.createRoom();
 
+            gameService.joinRoom(
+                    room.getRoomId(),
+                    session.getId()
+            );
+
+            Player player =
+                    gameService.getPlayer(
+                            session.getId()
+                    );
+            session.sendMessage(
+                    new TextMessage(
+                            "YOUR_ID:" +
+                                    player.getPublicId()
+                    )
+            );
+
             session.sendMessage(
                     new TextMessage(
                             "ROOM_CREATED:" +
                                     room.getRoomId()
+                    )
+            );
+
+            session.sendMessage(
+                    new TextMessage(
+                            "PLAYERS:" +
+                                    gameService.getPlayerList(
+                                            room.getRoomId()
+                                    )
                     )
             );
         }
